@@ -12,6 +12,7 @@ public class Ship extends Entity {
     private final int weaponCooldown;
     private int targetPlanet = -1;
     private int targetShip = -1;
+    private Position targetPosition;
 
     public Ship(final int owner, final int id, final double xPos, final double yPos,
                 final int health, final DockingStatus dockingStatus, final int dockedPlanet,
@@ -56,6 +57,14 @@ public class Ship extends Entity {
     
     public void setTargetShip(int ship) {
     	targetShip = ship;
+    }
+    
+    public Position getTargetPosition() {
+    	return targetPosition;
+    }
+    
+    public void setTargetPosition(Position target) {
+    	targetPosition = target;
     }
 
     public boolean canDock(final Planet planet) {

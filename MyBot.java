@@ -13,7 +13,7 @@ public class MyBot {
 	static List<Ship> shipsNearShipList;
 	static int turn;
 	static final Networking networking = new Networking();
-	static final GameMap gameMap = networking.initialize("Tamagocchi");
+	static final GameMap gameMap = networking.initialize("lee-aaron");
 	static final Player player = gameMap.getMyPlayer();
 	static final int playerId = player.getId();
 
@@ -34,12 +34,14 @@ public class MyBot {
 			networking.updateMap(gameMap);
 
 			sweepMap();
-			
+
 			for (final Ship ship : gameMap.getMyPlayer().getShips().values()) {
 
 				entityNearShip = gameMap.nearbyEntitiesByDistance(ship);
 				planetNearShipList = getNearestPlanet(entityNearShip);
 				shipsNearShipList = getNearestShip(entityNearShip);
+
+				// better handle if all ships are docked and enemy ship is coming
 
 				if (ship.getDockingStatus() != Ship.DockingStatus.Undocked) {
 					continue;
@@ -104,26 +106,57 @@ public class MyBot {
 				}
 
 				// move to most profitable planet at beginning of match
+				// implement position avoiding
 				if (!currentTerritory.containsKey(playerId)) {
-					if ((!getMostProductivePlanet(ship).isOwned()) && ship.canDock(getMostProductivePlanet(ship)) && numShip < getMostProductivePlanet(ship).getDockingSpots()) {
-						final ThrustMove newThrustMove = Navigation.navigateShipToDock(gameMap, ship,
+					
+					// checks if nearest unowned planet has spots and ship can dock
+					if ((!getMostProductivePlanet(ship).isOwned()) && ship.canDock(getMostProductivePlanet(ship))
+							&& numShip < getMostProductivePlanet(ship).getDockingSpots()) {
+						ThrustMove newThrustMove = Navigation.navigateShipToDock(gameMap, ship,
 								getMostProductivePlanet(ship), Constants.MAX_SPEED / 2);
 						if (newThrustMove != null) {
-							moveList.add(newThrustMove);
+							ship.setTargetPosition(new Position(getMostProductivePlanet(ship).getXPos(),
+									getMostProductivePlanet(ship).getYPos()));
 							ship.setTargetPlanet(getMostProductivePlanet(ship).getId());
-							Log.log("Target: " + String.valueOf(ship.getId()) + " "
-									+ String.valueOf(getMostProductivePlanet(ship).getId()));
+							if (!Collision.segmentCircleIntersect(new Position(ship.getXPos(), ship.getYPos()),
+									ship.getTargetPosition(), shipsNearShipList.get(0),
+									Constants.FORECAST_FUDGE_FACTOR)) {
+								moveList.add(newThrustMove);
+							} else {
+								newThrustMove = Navigation.navigateShipToAvoid(gameMap, ship,
+										getMostProductivePlanet(ship), Constants.MAX_SPEED / 2);
+								if (newThrustMove != null) {
+									moveList.add(newThrustMove);
+									Log.log("Collision Avoided: " + String.valueOf(ship.getId()) + " "
+											+ String.valueOf(getMostProductivePlanet(ship).getId()));
+								}
+							}
 
 						}
+
 						return true;
-					} else if (!getMostProductivePlanet(ship).isOwned() && numShip < getMostProductivePlanet(ship).getDockingSpots()) {
-						final ThrustMove newThrustMove = Navigation.navigateShipToDock(gameMap, ship,
+					// nearest unowned planet has spots
+					} else if (!getMostProductivePlanet(ship).isOwned()
+							&& numShip < getMostProductivePlanet(ship).getDockingSpots()) {
+						ThrustMove newThrustMove = Navigation.navigateShipToDock(gameMap, ship,
 								getMostProductivePlanet(ship), Constants.MAX_SPEED);
 						if (newThrustMove != null) {
-							moveList.add(newThrustMove);
+							ship.setTargetPosition(new Position(getMostProductivePlanet(ship).getXPos(),
+									getMostProductivePlanet(ship).getYPos()));
 							ship.setTargetPlanet(getMostProductivePlanet(ship).getId());
-							Log.log("Target: " + String.valueOf(ship.getId()) + " "
-									+ String.valueOf(getMostProductivePlanet(ship).getId()));
+							if (!Collision.segmentCircleIntersect(new Position(ship.getXPos(), ship.getYPos()),
+									ship.getTargetPosition(), shipsNearShipList.get(0),
+									Constants.FORECAST_FUDGE_FACTOR)) {
+								moveList.add(newThrustMove);
+							} else {
+								newThrustMove = Navigation.navigateShipToAvoid(gameMap, ship,
+										getMostProductivePlanet(ship), Constants.MAX_SPEED);
+								if (newThrustMove != null) {
+									moveList.add(newThrustMove);
+									Log.log("Collision Avoided: " + String.valueOf(ship.getId()) + " "
+											+ String.valueOf(getMostProductivePlanet(ship).getId()));
+								}
+							}
 
 						}
 						return true;
@@ -179,7 +212,7 @@ public class MyBot {
 					// enemy ship closer than nearest planet
 					if (s.getOwner() != playerId
 							&& ship.getDistanceTo(s) <= ship.getDistanceTo(planetNearShipList.get(0))
-							&& getShipHFShip(s) < 5) {
+							&& getShipHFShip(s) < 4) {
 						final ThrustMove newThrustMove = Navigation.navigateShipToAttack(gameMap, ship, s,
 								Constants.MAX_SPEED);
 						if (newThrustMove != null) {
@@ -211,7 +244,6 @@ public class MyBot {
 	}
 
 	// detection if enemies are coming near planet.
-	// ex: nearest enemies are closer than nearest unowned planet
 	public static boolean enemyWithinTerritory(Ship ship) {
 		for (Planet p : gameMap.getAllPlanets().values()) {
 			if (p.getOwner() == playerId) {
@@ -293,12 +325,21 @@ public class MyBot {
 
 	public static int getShipHFShip(Ship target) {
 		int count = 0;
-		for (Ship s : shipsNearShipList) {
-			if (s.getOwner() != playerId && s.getId() == target.getId()) {
+		for (Ship s : gameMap.getMyPlayer().getShips().values()) {
+			if (s.getTargetShip() == target.getId()) {
 				count++;
 			}
 		}
 		return count;
+	}
+
+	public static boolean allPlayerShipsDocked() {
+		for (Ship s : gameMap.getMyPlayer().getShips().values()) {
+			if (s.getDockingStatus() != Ship.DockingStatus.Undocked) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 }
