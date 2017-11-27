@@ -10,3 +10,6 @@ If enemy planet then skip to attack
 Attack:
 Predict enemy movement and intercept
 Track ships heading for enemy planet or ship. If > (power to kill/takeover), then reroute current ship to new target.
+
+Updates:
+Add collision detection between ships/Reroute them a few deg apart from each other

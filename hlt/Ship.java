@@ -1,5 +1,7 @@
 package hlt;
 
+import java.util.Map;
+
 public class Ship extends Entity {
 
     public enum DockingStatus { Undocked, Docking, Docked, Undocking }
@@ -8,7 +10,8 @@ public class Ship extends Entity {
     private final int dockedPlanet;
     private final int dockingProgress;
     private final int weaponCooldown;
-    private int targetPlanet = 100;
+    private int targetPlanet = -1;
+    private int targetShip = -1;
 
     public Ship(final int owner, final int id, final double xPos, final double yPos,
                 final int health, final DockingStatus dockingStatus, final int dockedPlanet,
@@ -45,6 +48,14 @@ public class Ship extends Entity {
     
     public void setTargetPlanet(int planet) {
     	targetPlanet = planet;
+    }
+    
+    public int getTargetShip() {
+    	return targetShip;
+    }
+    
+    public void setTargetShip(int ship) {
+    	targetShip = ship;
     }
 
     public boolean canDock(final Planet planet) {

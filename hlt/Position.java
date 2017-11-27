@@ -49,15 +49,6 @@ public class Position {
 
         return new Position(x, y);
     }
-    
-    public Position getExactPoint(final Entity target) {
-    	final double angleRad = target.orientTowardsInRad(this);
-
-        final double x = target.getXPos() + Math.cos(angleRad) * Constants.MIN_DISTANCE_FOR_CLOSEST_POINT;
-        final double y = target.getYPos() + Math.sin(angleRad) * Constants.MIN_DISTANCE_FOR_CLOSEST_POINT;
-
-        return new Position(x, y);
-    }
 
     @Override
     public boolean equals(final Object o) {
