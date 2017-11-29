@@ -13,6 +13,7 @@ public class Ship extends Entity {
     private int targetPlanet = -1;
     private int targetShip = -1;
     private Position targetPosition;
+    private boolean attackMode;
 
     public Ship(final int owner, final int id, final double xPos, final double yPos,
                 final int health, final DockingStatus dockingStatus, final int dockedPlanet,
@@ -67,6 +68,14 @@ public class Ship extends Entity {
     	targetPosition = target;
     }
 
+    public boolean getMode() {
+    	return attackMode;
+    }
+    
+    public void setMode(boolean mode) {
+    	attackMode = mode;
+    }
+    
     public boolean canDock(final Planet planet) {
         return getDistanceTo(planet) <= Constants.SHIP_RADIUS + Constants.DOCK_RADIUS + planet.getRadius();
     }

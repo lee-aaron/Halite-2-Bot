@@ -41,7 +41,7 @@ public class Navigation {
         final double angularStepRad = Math.PI/180.0;
         final Position targetPos = ship.getClosestPoint(dockTarget);
 
-        return navigateShipTowardsTarget(gameMap, ship, targetPos, maxThrust, avoidObstacles, maxCorrections, angularStepRad);
+        return navigateShipAroundTarget(gameMap, ship, targetPos, maxThrust, avoidObstacles, maxCorrections, angularStepRad);
     }
 
     public static ThrustMove navigateShipTowardsTarget(
@@ -115,7 +115,7 @@ public class Navigation {
             thrust = maxThrust;
         }
 
-        final int angleDeg = Util.angleRadToDegClipped(angleRad)+1;
+        final int angleDeg = Util.angleRadToDegClipped(angleRad)+2;
 
         return new ThrustMove(ship, angleDeg, thrust);
     }

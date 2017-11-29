@@ -1,3 +1,3 @@
 javac MyBot.java
 javac TestBot.java
-halite -d "240 160" "java MyBot" "java TestBot"
+halite -d "280 150" "java MyBot" "java TestBot"
